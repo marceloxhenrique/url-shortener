@@ -6,9 +6,8 @@ import com.marcelo.urlshortener.services.UrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
 public class UrlController {
     final  UrlService urlService;
@@ -17,12 +16,15 @@ public class UrlController {
     }
     @PostMapping
     public ResponseEntity<Object> createShortUrl(@RequestBody @Valid UrlDto urlDto){
-        try{
-            Url url = this.urlService.createUrl(urlDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(url.getShortUrl());
-        } catch (Exception e){
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("Caution URL is invalid : "+ e.getMessage());
-        }
+        Url url = this.urlService.createUrl(urlDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(url.getShortUrl());
     }
 
+    @GetMapping("/{shortUrl}")
+    public ResponseEntity<Void> findUrl(@PathVariable String shortUrl){
+        String longUrl = urlService.findUrl(shortUrl);
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", longUrl)
+                .build();
+    }
 }
