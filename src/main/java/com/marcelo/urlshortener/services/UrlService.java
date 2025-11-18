@@ -1,6 +1,8 @@
 package com.marcelo.urlshortener.services;
 
 import com.marcelo.urlshortener.dto.UrlDto;
+import com.marcelo.urlshortener.exceptions.InvalidUrlException;
+import com.marcelo.urlshortener.exceptions.UrlNotFoundException;
 import com.marcelo.urlshortener.models.Url;
 import com.marcelo.urlshortener.repositories.UrlRepository;
 import jakarta.transaction.Transactional;
@@ -14,7 +16,6 @@ import java.security.SecureRandom;
 public class UrlService {
     private final UrlValidationService urlValidationService;
     private final UrlRepository urlRepository;
-
     private final String BASE62 = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
     private final SecureRandom randomCharacter = new SecureRandom();
     private int urlLength = 5;
@@ -30,7 +31,7 @@ public class UrlService {
         var url = new Url();
         BeanUtils.copyProperties(urlDto, url);
         if(!urlValidationService.isValid(urlDto.longUrl())){
-            throw new IllegalArgumentException("Invalid URL");
+            throw new InvalidUrlException ();
         }
         url.setShortUrl(URL_BASE+"/"+shortGeneratorUrl());
         return urlRepository.save(url);
@@ -43,5 +44,10 @@ public class UrlService {
             newString.append(BASE62.charAt(index));
         }
         return newString.toString();
+    }
+
+    public String findUrl(String shortUrl){
+        Url longUrl = urlRepository.findByShortUrl(URL_BASE +"/"+shortUrl).orElseThrow(() -> new UrlNotFoundException());
+        return longUrl.getLongUrl();
     }
 }
