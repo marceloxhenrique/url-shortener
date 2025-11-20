@@ -6,7 +6,6 @@ import com.marcelo.urlshortener.exceptions.UrlNotFoundException;
 import com.marcelo.urlshortener.models.Url;
 import com.marcelo.urlshortener.repositories.UrlRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -27,14 +26,16 @@ public class UrlService {
         this.urlRepository = urlRepository;
     }
     @Transactional
-    public Url createUrl (UrlDto urlDto){
-        var url = new Url();
-        BeanUtils.copyProperties(urlDto, url);
+    public String createUrl (UrlDto urlDto){
         if(!urlValidationService.isValid(urlDto.longUrl())){
             throw new InvalidUrlException ();
         }
-        url.setShortUrl(URL_BASE+"/"+shortGeneratorUrl());
-        return urlRepository.save(url);
+        var url = new Url();
+        url.setLongUrl(urlDto.longUrl());
+        String shortCode = shortGeneratorUrl();
+        url.setShortUrl(shortCode);
+        urlRepository.save(url);
+        return URL_BASE + "/" + shortCode;
     }
 
     private String shortGeneratorUrl(){
@@ -47,7 +48,13 @@ public class UrlService {
     }
 
     public String findUrl(String shortUrl){
-        Url longUrl = urlRepository.findByShortUrl(URL_BASE +"/"+shortUrl).orElseThrow(() -> new UrlNotFoundException());
-        return longUrl.getLongUrl();
+        Url url = urlRepository.findByShortUrl(shortUrl).orElseThrow(() -> new UrlNotFoundException());
+        incrementUrlAccess(url);
+        return url.getLongUrl();
+    }
+
+    public void incrementUrlAccess(Url url){
+        url.setAccess(url.getAccess() + 1);
+        urlRepository.save(url);
     }
 }

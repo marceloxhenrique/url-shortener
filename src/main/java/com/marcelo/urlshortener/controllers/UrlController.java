@@ -1,7 +1,6 @@
 package com.marcelo.urlshortener.controllers;
 
 import com.marcelo.urlshortener.dto.UrlDto;
-import com.marcelo.urlshortener.models.Url;
 import com.marcelo.urlshortener.services.UrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -16,8 +15,8 @@ public class UrlController {
     }
     @PostMapping
     public ResponseEntity<Object> createShortUrl(@RequestBody @Valid UrlDto urlDto){
-        Url url = this.urlService.createUrl(urlDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(url.getShortUrl());
+        String url = this.urlService.createUrl(urlDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(url);
     }
 
     @GetMapping("/{shortUrl}")
