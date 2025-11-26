@@ -39,12 +39,16 @@ public class UrlService {
     }
 
     private String shortGeneratorUrl(){
-        StringBuilder newString = new StringBuilder(urlLength);
-        for (int i = 0; i < urlLength; i+=1){
-            int index = randomCharacter.nextInt(BASE62.length());
-            newString.append(BASE62.charAt(index));
-        }
-        return newString.toString();
+        String shortCode;
+        do{
+            StringBuilder newString = new StringBuilder(urlLength);
+            for (int i = 0; i < urlLength; i+=1){
+                int index = randomCharacter.nextInt(BASE62.length());
+                newString.append(BASE62.charAt(index));
+            }
+            shortCode = newString.toString();
+        } while (urlRepository.findByShortUrl(shortCode).isPresent());
+        return shortCode;
     }
 
     public String findUrl(String shortUrl){
